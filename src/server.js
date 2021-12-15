@@ -9,6 +9,7 @@ import usersRouter from "./users/index.js";
 import matchRouter from "./matches/index.js";
 import clubRouter from "./clubs/index.js";
 import countyRouter from "./counties/index.js";
+import orderRouter from "./orders/index.js";
 
 // import accomodationRouter from "./accomodation/index.js";
 
@@ -27,6 +28,7 @@ server.use("/users", usersRouter);
 server.use("/matches", matchRouter);
 server.use("/clubs", clubRouter);
 server.use("/counties", countyRouter);
+server.use("/orders", orderRouter);
 
 console.table(listEndpoints(server));
 

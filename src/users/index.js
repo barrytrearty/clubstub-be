@@ -7,8 +7,27 @@ import { JWTAuthMiddleware } from "../auth/token.js";
 import { clubAdminOnlyMiddleware } from "../auth/adminOnly.js";
 import { verifyRefreshAndGenerateTokens } from "../auth/tools.js";
 
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import multer from "multer";
+
 import passport from "passport";
 import GoogleStrategy from "../auth/oauth.js";
+
+const { CLOUDINARY_NAME, CLOUDINARY_KEY, CLOUDINARY_SECRET } = process.env;
+
+cloudinary.config({
+  cloud_name: CLOUDINARY_NAME,
+  api_key: CLOUDINARY_KEY,
+  api_secret: CLOUDINARY_SECRET,
+});
+
+const cloudinaryStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "linked-products",
+  },
+});
 
 const usersRouter = express.Router();
 
@@ -23,7 +42,11 @@ usersRouter.get("/", async (req, res, next) => {
 
 usersRouter.post("/register", async (req, res, next) => {
   try {
-    const newUser = new UserModel(req.body);
+    const newUser = new UserModel({
+      ...req.body,
+      picture:
+        "https://res.cloudinary.com/btrearty/image/upload/v1639568256/avatar/user_oseevk.png",
+    });
     const { _id } = await newUser.save();
     const tokens = await JWTAuthenticate(newUser);
     res.send({ ...newUser.toObject(), tokens });
@@ -100,6 +123,25 @@ usersRouter.post("/logout", JWTAuthMiddleware, async (req, res, next) => {
     next(error);
   }
 });
+
+usersRouter.post(
+  "/me/picture",
+  JWTAuthMiddleware,
+  multer({ storage: cloudinaryStorage }).single("avatar"),
+  async (req, res, next) => {
+    try {
+      // const user = await UserModel.findById(req.user._id);
+      req.user.picture = req.file.path;
+      await req.user.save();
+      // const newAvatar = { cover: req.file.path };
+      // const userWithAvatar = { ...user, ...newAvatar };
+      res.send(req.user);
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  }
+);
 
 // usersRouter.get(
 //   "/me/accomodation",

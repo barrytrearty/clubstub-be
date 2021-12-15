@@ -22,6 +22,25 @@ clubRouter.get(
   }
 );
 
+//Get clubs from a single county
+clubRouter.get(
+  "/county/:county",
+  // JWTAuthMiddleware,
+  async (req, res, next) => {
+    try {
+      const county = req.params.county;
+      const club = await clubModel.find({ county: county });
+      if (club) {
+        res.send(club);
+      } else {
+        next(createHttpError(404, `Club with id ${county} not found!`));
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 clubRouter.get(
   "/:id",
   // JWTAuthMiddleware,

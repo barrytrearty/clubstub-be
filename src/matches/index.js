@@ -7,39 +7,69 @@ import { JWTAuthMiddleware } from "../auth/token.js";
 import { clubAdminOnlyMiddleware } from "../auth/adminOnly.js";
 import { sendEmail } from "./sendEmail.js";
 import { v4 as uuid } from "uuid";
+import QRCode from "qrcode";
 import Stripe from "stripe";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const matchRouter = express.Router();
 
-matchRouter.get("/", JWTAuthMiddleware, async (req, res, next) => {
-  try {
-    const match = await matchModel
-      .find()
-      .populate("homeTeam")
-      .populate("awayTeam");
-    res.send(match);
-  } catch (error) {
-    next(error);
-  }
-});
-
-matchRouter.get("/:id", JWTAuthMiddleware, async (req, res, next) => {
-  try {
-    const id = req.params.id;
-    const match = await matchModel
-      .findById(id)
-      .populate("homeTeam")
-      .populate("awayTeam");
-    if (match) {
+matchRouter.get(
+  "/",
+  // JWTAuthMiddleware,
+  async (req, res, next) => {
+    try {
+      const match = await matchModel
+        .find()
+        .populate("homeTeam")
+        .populate("awayTeam");
       res.send(match);
-    } else {
-      next(createHttpError(404, `Match with id ${id} not found!`));
+    } catch (error) {
+      next(error);
     }
-  } catch (error) {
-    next(error);
   }
-});
+);
+
+matchRouter.get(
+  "/competition/:compName",
+  //  JWTAuthMiddleware,
+  async (req, res, next) => {
+    try {
+      const compName = req.params.compName;
+      const match = await matchModel
+        .find({ type: compName })
+        .populate("homeTeam")
+        .populate("awayTeam");
+      if (match) {
+        res.send(match);
+      } else {
+        next(createHttpError(404, `Match with id ${compName} not found!`));
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+matchRouter.get(
+  "/:id",
+  //  JWTAuthMiddleware,
+  async (req, res, next) => {
+    try {
+      const id = req.params.id;
+      const match = await matchModel
+        .findById(id)
+        .populate("homeTeam")
+        .populate("awayTeam");
+      if (match) {
+        res.send(match);
+      } else {
+        next(createHttpError(404, `Match with id ${id} not found!`));
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 matchRouter.post(
   "/",
@@ -63,8 +93,8 @@ matchRouter.post(
 
 matchRouter.put(
   "/:_id",
-  JWTAuthMiddleware,
-  clubAdminOnlyMiddleware,
+  // JWTAuthMiddleware,
+  // clubAdminOnlyMiddleware,
   async (req, res, next) => {
     try {
       const id = req.params._id;
@@ -145,8 +175,37 @@ matchRouter.post(
         }
       );
       console.log("Charge:", { charge });
-      const content = "You are going to the game";
-      await sendEmail(content, token.email);
+      console.log(product);
+      //GENERATE QR CODE
+      // let productData = JSON.stringify(product);
+      // QRCode.toString(
+      //   productData,
+      //   { type: "terminal" },
+
+      //   function (err, code) {
+      //     if (err) return console.log("error occurred");
+
+      //     console.log(code);
+      //   }
+      // );
+
+      // QRCode.toDataURL(productData, function (err, code) {
+      //   if (err) return console.log("error occurred");
+
+      //   console.log(code);
+      // });
+
+      // const generateQR = async (text) => {
+      //   try {
+      //     let code = await QRCode.toDataURL(text);
+      //     return code;
+      //   } catch (err) {
+      //     console.error(err);
+      //   }
+      // };
+      // const qrCode = generateQR(product);
+      /////////////////////////////////////
+      await sendEmail(product, token.email);
       status = "success";
     } catch (error) {
       console.error("Error:", error);
