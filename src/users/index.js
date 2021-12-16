@@ -162,6 +162,26 @@ usersRouter.post(
 // );
 
 usersRouter.get(
+  "/:id",
+  //  JWTAuthMiddleware,
+  async (req, res, next) => {
+    try {
+      const id = req.params.id;
+      const user = await UserModel.findById(id);
+      // .populate("homeTeam")
+      // .populate("awayTeam");
+      if (user) {
+        res.send(user);
+      } else {
+        next(createHttpError(404, `User with id ${id} not found!`));
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+usersRouter.get(
   "/googleLogin",
   passport.authenticate("google", { scope: ["profile", "email"] })
 );

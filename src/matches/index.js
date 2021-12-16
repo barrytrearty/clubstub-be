@@ -195,17 +195,27 @@ matchRouter.post(
       //   console.log(code);
       // });
 
+      const generateQR = async (text) => {
+        try {
+          let code = await QRCode.toDataURL(text);
+          return code;
+        } catch (err) {
+          console.error(err);
+        }
+      };
+
       // const generateQR = async (text) => {
       //   try {
-      //     let code = await QRCode.toDataURL(text);
+      //     let code = await QRCode.toFile("./ticket-qr-code.png", text);
       //     return code;
       //   } catch (err) {
       //     console.error(err);
       //   }
       // };
-      // const qrCode = generateQR(product);
+      const qrCodeImg = generateQR(product);
+      console.log(`THIS HERE: ${qrCodeImg}`);
       /////////////////////////////////////
-      await sendEmail(product, token.email);
+      await sendEmail(product, token.email, qrCodeImg);
       status = "success";
     } catch (error) {
       console.error("Error:", error);

@@ -11,6 +11,8 @@ export const UserSchema = new Schema({
   role: { type: String, default: "User", enum: ["User", "Club Admin"] },
   refreshToken: { type: String },
   googleId: { type: String },
+  followers: [{ type: Schema.Types.ObjectId, ref: "users" }],
+  following: [{ type: Schema.Types.ObjectId, ref: "users" }],
 });
 
 UserSchema.pre("save", async function (next) {
