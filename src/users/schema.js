@@ -8,9 +8,10 @@ export const UserSchema = new Schema({
   password: { type: String },
   username: { type: String },
   picture: { type: String },
-  role: { type: String, default: "User", enum: ["User", "Club Admin"] },
+  role: { type: String, default: "User", enum: ["User", "Admin"] },
   refreshToken: { type: String },
   googleId: { type: String },
+  county: { type: Schema.Types.ObjectId, ref: "counties" },
   followers: [{ type: Schema.Types.ObjectId, ref: "users" }],
   following: [{ type: Schema.Types.ObjectId, ref: "users" }],
 });

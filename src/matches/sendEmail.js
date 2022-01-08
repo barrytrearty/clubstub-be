@@ -17,6 +17,7 @@ export const sendEmail = async (product, receiverEmail, qrCode) => {
     <h4>You will be attending the ${product.description}</h4>
     <h4>Game to take place on the </h4>
     <strong>${product.price}</strong></div>
+    <h4> Link to your <a href="link.com">code</a> </h4>
     <img src=${qrCode}>`,
     // attachments: [
     //   {

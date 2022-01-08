@@ -1,7 +1,7 @@
 import createHttpError from "http-errors";
 
 export const clubAdminOnlyMiddleware = (req, res, next) => {
-  if (req.user.role === "Club Admin") {
+  if (req.user.role === "Admin") {
     next();
   } else {
     next(createHttpError(403, "Club Admin Only!"));
@@ -9,7 +9,7 @@ export const clubAdminOnlyMiddleware = (req, res, next) => {
 };
 
 export const siteAdminOnlyMiddleware = (req, res, next) => {
-  if (req.user.role === "Club Admin") {
+  if (req.user.role === "Admin") {
     next();
   } else {
     next(createHttpError(403, "Club Admin Only!"));

@@ -28,6 +28,7 @@
     "passport": "^0.5.0",
     "passport-google-oauth20": "^2.0.0",
     "pdfmake": "^0.2.4",
+    "qr-image": "^3.2.0",
     "qrcode": "^1.5.0",
     "stripe": "^8.191.0",
     "uuid": "^8.3.2"
