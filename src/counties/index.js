@@ -104,25 +104,25 @@ countyRouter.put(
   }
 );
 
-countyRouter.put("/:name/follow", JWTAuthMiddleware, async (req, res, next) => {
-  try {
-    const countyName = req.params.name;
-    const modifiedCounty = await countyModel.findOneAndUpdate(
-      { name: countyName },
-      { $push: { followers: req.body.id } },
-      {
-        new: true, // returns the modified user
-      }
-    );
-    if (modifiedCounty) {
-      res.send(modifiedCounty);
-    } else {
-      next(createHttpError(404, `County with id ${id} not found!`));
-    }
-  } catch (error) {
-    next(error);
-  }
-});
+// countyRouter.put("/:name/follow", JWTAuthMiddleware, async (req, res, next) => {
+//   try {
+//     const countyName = req.params.name;
+//     const modifiedCounty = await countyModel.findOneAndUpdate(
+//       { name: countyName },
+//       { $push: { followers: req.body.id } },
+//       {
+//         new: true, // returns the modified user
+//       }
+//     );
+//     if (modifiedCounty) {
+//       res.send(modifiedCounty);
+//     } else {
+//       next(createHttpError(404, `County with id ${id} not found!`));
+//     }
+//   } catch (error) {
+//     next(error);
+//   }
+// });
 
 countyRouter.delete(
   "/:_id",

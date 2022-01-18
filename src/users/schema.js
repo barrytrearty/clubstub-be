@@ -12,8 +12,8 @@ export const UserSchema = new Schema({
   refreshToken: { type: String },
   googleId: { type: String },
   county: { type: Schema.Types.ObjectId, ref: "counties" },
-  followers: [{ type: Schema.Types.ObjectId, ref: "users" }],
-  following: [{ type: Schema.Types.ObjectId, ref: "users" }],
+  // followers: [{ type: Schema.Types.ObjectId, ref: "users" }],
+  // following: [{ type: Schema.Types.ObjectId, ref: "users" }],
 });
 
 UserSchema.pre("save", async function (next) {

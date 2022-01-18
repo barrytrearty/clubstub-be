@@ -10,6 +10,7 @@ import matchRouter from "./matches/index.js";
 import clubRouter from "./clubs/index.js";
 import countyRouter from "./counties/index.js";
 import orderRouter from "./orders/index.js";
+import competitionRouter from "./competitions/index.js";
 
 // import accomodationRouter from "./accomodation/index.js";
 
@@ -29,6 +30,7 @@ server.use("/matches", matchRouter);
 server.use("/clubs", clubRouter);
 server.use("/counties", countyRouter);
 server.use("/orders", orderRouter);
+server.use("/competitions", competitionRouter);
 
 console.table(listEndpoints(server));
 

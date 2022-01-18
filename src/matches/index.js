@@ -5,11 +5,35 @@ import { matchModel } from "./model.js";
 import { JWTAuthenticate } from "../auth/tools.js";
 import { JWTAuthMiddleware } from "../auth/token.js";
 import { clubAdminOnlyMiddleware } from "../auth/adminOnly.js";
+
+import { getPdfReadableStream } from "./pdf.js";
+import { pipeline } from "stream";
 import { sendEmail } from "./sendEmail.js";
 import { v4 as uuid } from "uuid";
+
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import multer from "multer";
+import { generatePDFAsync } from "./pdf1.js";
+
 import QRCode from "qrcode";
 import Stripe from "stripe";
+import { createWriteStream } from "fs";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const { CLOUDINARY_NAME, CLOUDINARY_KEY, CLOUDINARY_SECRET } = process.env;
+
+cloudinary.config({
+  cloud_name: CLOUDINARY_NAME,
+  api_key: CLOUDINARY_KEY,
+  api_secret: CLOUDINARY_SECRET,
+});
+
+const cloudinaryStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "linked-products",
+  },
+});
 
 const matchRouter = express.Router();
 
@@ -20,6 +44,64 @@ matchRouter.get(
     try {
       const match = await matchModel
         .find()
+        .populate("competition")
+        .populate("homeTeam")
+        .populate("awayTeam");
+      res.send(match);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+matchRouter.get("/search/:searchQuery", async (req, res, next) => {
+  try {
+    const matches = await matchModel
+      .find()
+      .populate("competition")
+      .populate("homeTeam")
+      .populate("awayTeam");
+    const matchSearch = matches.filter(
+      (m) =>
+        m.awayTeam.name.toLowerCase().includes(req.params.searchQuery) ||
+        m.homeTeam.name.toLowerCase().includes(req.params.searchQuery)
+    );
+    console.log(req.params.searchQuery);
+    res.send(matchSearch);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// matchRouter.get(
+//   "/competition/:compName",
+//   //  JWTAuthMiddleware,
+//   async (req, res, next) => {
+//     try {
+//       const compName = req.params.compName;
+//       const match = await matchModel
+//         .find({ type: compName })
+//         .populate("homeTeam")
+//         .populate("awayTeam");
+//       if (match) {
+//         res.send(match);
+//       } else {
+//         next(createHttpError(404, `Match with id ${compName} not found!`));
+//       }
+//     } catch (error) {
+//       next(error);
+//     }
+//   }
+// );
+matchRouter.get(
+  "/upNext",
+  // JWTAuthMiddleware,
+  async (req, res, next) => {
+    try {
+      const match = await matchModel
+        .find({})
+        .sort({ date: 1 })
+        .populate("competition")
         .populate("homeTeam")
         .populate("awayTeam");
       res.send(match);
@@ -30,20 +112,17 @@ matchRouter.get(
 );
 
 matchRouter.get(
-  "/competition/:compName",
-  //  JWTAuthMiddleware,
+  "/value",
+  // JWTAuthMiddleware,
   async (req, res, next) => {
     try {
-      const compName = req.params.compName;
       const match = await matchModel
-        .find({ type: compName })
+        .find({})
+        .sort({ entryFee: 1 })
+        .populate("competition")
         .populate("homeTeam")
         .populate("awayTeam");
-      if (match) {
-        res.send(match);
-      } else {
-        next(createHttpError(404, `Match with id ${compName} not found!`));
-      }
+      res.send(match);
     } catch (error) {
       next(error);
     }
@@ -58,6 +137,7 @@ matchRouter.get(
       const id = req.params.id;
       const match = await matchModel
         .findById(id)
+        .populate("competition")
         .populate("homeTeam")
         .populate("awayTeam");
       if (match) {
@@ -86,6 +166,29 @@ matchRouter.post(
 
       res.status(201).send({ _id });
     } catch (error) {
+      next(error);
+    }
+  }
+);
+
+matchRouter.post(
+  "/:id/imageUpload",
+  JWTAuthMiddleware,
+  // clubAdminOnlyMiddleware,
+  multer({ storage: cloudinaryStorage }).single("avatar"),
+  async (req, res, next) => {
+    try {
+      const id = req.params.id;
+      const modifiedPost = await matchModel.findByIdAndUpdate(
+        id,
+        { image: req.file.path },
+        {
+          new: true,
+        }
+      );
+      res.send(modifiedPost);
+    } catch (error) {
+      console.log(error);
       next(error);
     }
   }
@@ -138,13 +241,13 @@ matchRouter.post(
   "/checkout",
   //  JWTAuthMiddleware,
   async (req, res) => {
-    console.log("Request:", req.body);
+    // console.log("Request:", req.body);
 
     let error;
     let status;
     let qrCodeImg;
     try {
-      const { product, token } = req.body;
+      const { matchObj, token } = req.body;
 
       const customer = await stripe.customers.create({
         email: token.email,
@@ -154,11 +257,11 @@ matchRouter.post(
       // const idempotency_key = uuid();
       const charge = await stripe.charges.create(
         {
-          amount: product.price * 10,
+          amount: matchObj.entryFee * 10,
           currency: "usd",
           customer: customer.id,
           receipt_email: token.email,
-          description: `Purchased the ${product.name}`,
+          description: `Purchased the ${matchObj.competition.description} tickets`,
           shipping: {
             name: token.card.name,
             address: {
@@ -175,49 +278,8 @@ matchRouter.post(
           idempotencyKey,
         }
       );
-      console.log("Charge:", { charge });
-      console.log(product);
-
-      //GENERATE QR CODE
-      // let productData = JSON.stringify(product);
-      // QRCode.toString(
-      //   productData,
-      //   { type: "terminal" },
-
-      //   function (err, code) {
-      //     if (err) return console.log("error occurred");
-
-      //     console.log(code);
-      //   }
-      // );
-
-      // QRCode.toDataURL(productData, function (err, code) {
-      //   if (err) return console.log("error occurred");
-
-      //   console.log(code);
-      // });
-
-      // const generateQR = (text) => {
-      //   QRCode.toDataURL(text, (err, src) => {
-      //     if (err) res.send("error occurred");
-      //     console.log(src);
-      //     return src;
-      //   });
-      // };
-
-      // const generateQR = async (text) => {
-      //   try {
-      //     let code = await QRCode.toFile("./ticket-qr-code.png", text);
-      //     return code;
-      //   } catch (err) {
-      //     console.error(err);
-      //   }
-      // };
-      // qrCodeImg = generateQR(product.description);
-      // generateQR(product.description);
-      // console.log(`THIS HERE: ${qrCodeImg}`);
-      /////////////////////////////////////
-      await sendEmail(product, token.email, qrCodeImg);
+      // console.log("Charge:", { charge });
+      // console.log(matchObj);
       status = "success";
       // return qrCodeImg;
     } catch (error) {
@@ -260,24 +322,26 @@ matchRouter.post(
   "/qrCode",
   //  JWTAuthMiddleware,
   async (req, res) => {
-    console.log("Request:", req.body.description);
-    const description = req.body.description;
+    // console.log("Request:", req.body);
+    const { matchObj, receiverEmail } = req.body;
     try {
-      QRCode.toDataURL(description, (err, src) => {
-        if (err) res.send("error occurred");
-        console.log(src);
-        // return { image: src };
-      });
+      const generateQR = (text) => {
+        QRCode.toDataURL(text, (err, src) => {
+          if (err) res.send("error occurred");
+          console.log(`Src1: ${src}`);
+          return src;
+        });
+      };
+
+      let qrCodeImg = generateQR(matchObj._id);
+      console.log(`Qrcode: ${qrCodeImg}`);
+      const source = await generatePDFAsync(matchObj, qrCodeImg);
+
+      sendEmail(matchObj, receiverEmail, source);
     } catch (error) {
-      next(error);
+      console.error("Error:", error);
     }
   }
 );
-
-// matchRouter.post("sendTicket", async (req, res, next) => {
-//   try {
-//     const { email } = req.body;
-//   } catch (error) {}
-// });
 
 export default matchRouter;

@@ -10,9 +10,4 @@ export const countySchema = new Schema({
     enum: ["Ulster", "Leinster", "Connacht", "Munster"],
   },
   crest: { type: String, required: true },
-  followers: [{ type: Schema.Types.ObjectId, ref: "users" }],
-  admins: [{ type: Schema.Types.ObjectId, ref: "users" }],
-  // website:{ type: String, required: true },
-  // twitter: { type: String, required: true },
-  // facebook: { type: String, required: true },
 });
