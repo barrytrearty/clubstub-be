@@ -19,6 +19,18 @@ const port = process.env.PORT || 5000;
 
 passport.use("google", GoogleStrategy);
 
+// const whiteList = [process.env.FRONT_DEV_URL, process.env.FRONT_PROD_URL];
+// const corsOptions = {
+//   origin: function (origin, next) {
+//     // console.log("CURRENT ORIGIN: ", origin);
+//     if (!origin || whiteList.indexOf(origin) !== -1) {
+//       next(null, true);
+//     } else {
+//       next(new Error(`Origin ${origin} not allowed!`));
+//     }
+//   },
+// };
+
 // server.use(cors({ origin: "http://localhost:3000", credentials: true }));
 server.use(cors());
 server.use(express.json());

@@ -4,9 +4,26 @@ import PdfPrinter from "pdfmake";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
+import QRCode from "qrcode";
 
-export const generatePDFAsync = async (matchObj, qrCodeImg) => {
-  const asyncPipeline = promisify(pipeline); // promisify is a (VERY COOL) tool which transforms a function that uses callbacks(error-first callbacks) into a function that uses Promises (and so Async/Await). Pipeline is a function that works with callbacks to connect 2 or more streams together --> I can promisify a pipeline, getting back an asynchronous pipeline
+export const generatePDFAsync = async (matchObj) => {
+  const asyncPipeline = promisify(pipeline);
+
+  // let qrCodeImg;
+
+  // const generateQR = (text) => {
+  //   QRCode.toDataURL(text, (err, src) => {
+  //     if (err) res.send("error occurred");
+  //     console.log(`Src1: ${src}`);
+  //     qrCodeImg = src;
+  //     console.log(`Src2: ${qrCodeImg}`);
+  //     return src;
+  //   });
+  // };
+
+  // // let qrCodeImg = generateQR(matchObj._id);
+  // generateQR(matchObj._id);
+  // console.log(`Src3: ${qrCodeImg}`);
 
   const fonts = {
     Roboto: {
@@ -32,8 +49,8 @@ export const generatePDFAsync = async (matchObj, qrCodeImg) => {
         style: "subHeader",
       },
       { text: `Date: ${matchObj.date}`, style: "subHeader" },
-      { image: `"${matchObj._id}"`, style: "qrcode" },
-      //   { image: `"${qrCodeImg}"`, style: "qrcode" },
+      { qr: `"${matchObj._id}"`, style: "qrcode" },
+      // { image: `"${qrCodeImg}"` },
     ],
     styles: {
       header: {

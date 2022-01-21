@@ -30,6 +30,8 @@ export const matchSchema = new Schema({
   entryFee: { type: Number, required: true },
   capacity: { type: Number },
   image: { type: String },
+  admin: { type: Schema.Types.ObjectId, ref: "users" },
+  createdOn: { type: String, required: true },
   // comments: { default: [], type: [commentSchema] },
   // likes: { default: [], type: [likeSchema] },
 });

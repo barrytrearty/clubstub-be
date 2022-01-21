@@ -6,7 +6,7 @@ import { JWTAuthenticate } from "../auth/tools.js";
 import { JWTAuthMiddleware } from "../auth/token.js";
 import { clubAdminOnlyMiddleware } from "../auth/adminOnly.js";
 
-import { getPdfReadableStream } from "./pdf.js";
+// import { getPdfReadableStream } from "./pdf.js";
 import { pipeline } from "stream";
 import { sendEmail } from "./sendEmail.js";
 import { v4 as uuid } from "uuid";
@@ -46,7 +46,8 @@ matchRouter.get(
         .find()
         .populate("competition")
         .populate("homeTeam")
-        .populate("awayTeam");
+        .populate("awayTeam")
+        .populate("admin");
       res.send(match);
     } catch (error) {
       next(error);
@@ -60,7 +61,8 @@ matchRouter.get("/search/:searchQuery", async (req, res, next) => {
       .find()
       .populate("competition")
       .populate("homeTeam")
-      .populate("awayTeam");
+      .populate("awayTeam")
+      .populate("admin");
     const matchSearch = matches.filter(
       (m) =>
         m.awayTeam.name.toLowerCase().includes(req.params.searchQuery) ||
@@ -104,6 +106,7 @@ matchRouter.get(
         .populate("competition")
         .populate("homeTeam")
         .populate("awayTeam");
+      // .populate("admin");
       res.send(match);
     } catch (error) {
       next(error);
@@ -122,12 +125,32 @@ matchRouter.get(
         .populate("competition")
         .populate("homeTeam")
         .populate("awayTeam");
+      // .populate("admin");
       res.send(match);
     } catch (error) {
       next(error);
     }
   }
 );
+
+matchRouter.get("/admin/:id", JWTAuthMiddleware, async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const match = await matchModel
+      .find({ admin: id })
+      .populate("competition")
+      .populate("homeTeam")
+      .populate("awayTeam");
+    // .populate("admin");
+    if (match) {
+      res.send(match);
+    } else {
+      next(createHttpError(404, `Match with id ${id} not found!`));
+    }
+  } catch (error) {
+    next(error);
+  }
+});
 
 matchRouter.get(
   "/:id",
@@ -140,6 +163,7 @@ matchRouter.get(
         .populate("competition")
         .populate("homeTeam")
         .populate("awayTeam");
+      // .populate("admin");
       if (match) {
         res.send(match);
       } else {
@@ -325,17 +349,22 @@ matchRouter.post(
     // console.log("Request:", req.body);
     const { matchObj, receiverEmail } = req.body;
     try {
-      const generateQR = (text) => {
-        QRCode.toDataURL(text, (err, src) => {
-          if (err) res.send("error occurred");
-          console.log(`Src1: ${src}`);
-          return src;
-        });
-      };
+      // let qrCodeImg;
 
-      let qrCodeImg = generateQR(matchObj._id);
-      console.log(`Qrcode: ${qrCodeImg}`);
-      const source = await generatePDFAsync(matchObj, qrCodeImg);
+      // const generateQR = (text) => {
+      //   QRCode.toDataURL(text, (err, src) => {
+      //     if (err) res.send("error occurred");
+      //     console.log(`Src1: ${src}`);
+      //     qrCodeImg = src;
+      //     console.log(`Src2: ${qrCodeImg}`);
+      //     return src;
+      //   });
+      // };
+
+      // let qrCodeImg = generateQR(matchObj._id);
+      // generateQR(matchObj._id);
+      // console.log(`Qrcode: ${qrCodeImg}`);
+      const source = await generatePDFAsync(matchObj);
 
       sendEmail(matchObj, receiverEmail, source);
     } catch (error) {
