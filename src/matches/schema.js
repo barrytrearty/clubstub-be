@@ -26,6 +26,7 @@ export const matchSchema = new Schema({
   awayTeam: { type: Schema.Types.ObjectId, ref: "clubs" },
   venue: { type: String, required: true },
   date: { type: String, required: true },
+  displayDate: { type: String, required: true },
   time: { type: String, required: true },
   entryFee: { type: Number, required: true },
   capacity: { type: Number },

@@ -305,7 +305,6 @@ matchRouter.post(
       // console.log("Charge:", { charge });
       // console.log(matchObj);
       status = "success";
-      // return qrCodeImg;
     } catch (error) {
       console.error("Error:", error);
       status = "failure";
@@ -315,58 +314,16 @@ matchRouter.post(
   }
 );
 
-// matchRouter.post(
-//   "/qrCode",
-//   //  JWTAuthMiddleware,
-//   async (req, res) => {
-//     console.log("Request:", req.body.description);
-//     const description = req.body.description;
-//     let error;
-//     let status;
-//     let qrCodeImg;
-//     try {
-//       const generateQR = (text) => {
-//         QRCode.toDataURL(text, (err, src) => {
-//           if (err) res.send("error occurred");
-//           console.log(src);
-//           return src;
-//         });
-//       };
-
-//       qrCodeImg = generateQR(description);
-//       return { image: qrCodeImg };
-//     } catch (error) {
-//       console.error("Error:", error);
-//     }
-//     res.json({ error, status });
-//   }
-// );
-
 matchRouter.post(
   "/qrCode",
   //  JWTAuthMiddleware,
   async (req, res) => {
-    // console.log("Request:", req.body);
     const { matchObj, receiverEmail } = req.body;
     try {
-      // let qrCodeImg;
-
-      // const generateQR = (text) => {
-      //   QRCode.toDataURL(text, (err, src) => {
-      //     if (err) res.send("error occurred");
-      //     console.log(`Src1: ${src}`);
-      //     qrCodeImg = src;
-      //     console.log(`Src2: ${qrCodeImg}`);
-      //     return src;
-      //   });
-      // };
-
-      // let qrCodeImg = generateQR(matchObj._id);
-      // generateQR(matchObj._id);
-      // console.log(`Qrcode: ${qrCodeImg}`);
       const source = await generatePDFAsync(matchObj);
 
       sendEmail(matchObj, receiverEmail, source);
+      res.send("Sent");
     } catch (error) {
       console.error("Error:", error);
     }
