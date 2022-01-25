@@ -5,6 +5,7 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import fs from "fs-extra";
 import QRCode from "qrcode";
+import imageConverter from "image-to-base64";
 
 // import {logo} from ""
 
@@ -13,19 +14,20 @@ export const generatePDFAsync = async (matchObj) => {
     const asyncPipeline = promisify(pipeline);
 
     ///////LOGO///////////////////////////
-    // const pathToLogo = join(
-    //   dirname(fileURLToPath(import.meta.url)),
-    //   "ballOdeals.png"
-    // ).toDataURL();
-    // console.log("Path::" + pathToLogo);
+    const pathToLogo = join(
+      dirname(fileURLToPath(import.meta.url)),
+      "ballOdeals.png"
+    );
+    //const logo = await imageConverter(pathToLogo);
+    console.log("Path::" + pathToLogo);
 
-    // let logoRead = await fs.readFile(pathToLogo);
+    let logoRead = await fs.readFile(pathToLogo);
     // console.log(logoRead);
 
     // let logoWrite = fs.createWriteStream(pathToLogo);
     // await asyncPipeline(logoRead, logoWrite);
 
-    // let logo = pathToLogo.toString("base64");
+    let logo = logoRead.toString("base64");
     // console.log(logo);
 
     // console.log(`Dirrrr ${logo}`);
@@ -46,10 +48,10 @@ export const generatePDFAsync = async (matchObj) => {
 
     const docDefinition = {
       content: [
-        // {
-        //   image: logo,
-        //   width: 100,
-        // },
+        {
+          image: `data:image/png;base64, ${logo}`,
+          //   width: 100,
+        },
         {
           text: `${matchObj.competition.description} ${matchObj.description}`,
           style: "header",
@@ -89,10 +91,11 @@ export const generatePDFAsync = async (matchObj) => {
     pdfReadableStream.end();
 
     const path = join(dirname(fileURLToPath(import.meta.url)), "ticket.pdf");
-    //   console.log(path);
+
     await asyncPipeline(pdfReadableStream, fs.createWriteStream(path));
+    console.log("path string" + path);
     return path;
   } catch (error) {
-    // console.log(error);
+    console.log(error);
   }
 };

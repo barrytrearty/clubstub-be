@@ -2,6 +2,7 @@ import express from "express";
 import createHttpError from "http-errors";
 
 import { matchModel } from "./model.js";
+import { orderModel } from "../orders/model.js";
 import { JWTAuthenticate } from "../auth/tools.js";
 import { JWTAuthMiddleware } from "../auth/token.js";
 import { clubAdminOnlyMiddleware } from "../auth/adminOnly.js";
@@ -18,7 +19,9 @@ import { generatePDFAsync } from "./pdf1.js";
 
 import QRCode from "qrcode";
 import Stripe from "stripe";
-import { createWriteStream } from "fs";
+import fs from "fs-extra";
+
+const { unlink } = fs;
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const { CLOUDINARY_NAME, CLOUDINARY_KEY, CLOUDINARY_SECRET } = process.env;
 
@@ -247,7 +250,7 @@ matchRouter.delete(
   async (req, res, next) => {
     try {
       const id = req.params._id;
-
+      // const deletedOrder = await orderModel
       const deletedMatch = await matchModel.findByIdAndDelete(id);
 
       if (deletedMatch) {
@@ -321,8 +324,9 @@ matchRouter.post(
     const { matchObj, receiverEmail } = req.body;
     try {
       const source = await generatePDFAsync(matchObj);
-
-      sendEmail(matchObj, receiverEmail, source);
+      console.log("SOURCE ", source);
+      await sendEmail(matchObj, receiverEmail, source);
+      await unlink(source);
       res.send("Sent");
     } catch (error) {
       console.error("Error:", error);
