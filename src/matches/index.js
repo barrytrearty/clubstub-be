@@ -250,8 +250,11 @@ matchRouter.delete(
   async (req, res, next) => {
     try {
       const id = req.params._id;
-      // const deletedOrder = await orderModel
+
       const deletedMatch = await matchModel.findByIdAndDelete(id);
+      const deletedOrders = await orderModel.deleteMany({
+        match: { _id: id },
+      });
 
       if (deletedMatch) {
         res.status(204).send();
