@@ -16,13 +16,13 @@ export const sendEmail = async (product, receiverEmail, source) => {
     const msg = {
       to: receiverEmail,
       from: "btrearty@gmail.com",
-      subject: `GAA Tickets - ${product.description}`,
+      subject: `Here is your ticket to the ${product.description}`,
       text: `${product.description}`,
-      html: `<div><h2>Congratulations</h2>
-    <h4>You will be attending the ${product.description}</h4>
-    <h4>Game to take place on the </h4>
+      html: `<div><h2>Game on!</h2>
+    <h4>You've booked your spot to the  ${product.description}</h4>
+    <h4>This game will take place on the ${product.displayDate} at ${product.time}</h4>
     <strong>${product.entryFee}</strong></div>
-    <h4> Link to your <a href="link.com">code</a> </h4>`,
+    <h4> Please find attached your ticket for the upcoming game. </h4>`,
 
       attachments: [
         {
