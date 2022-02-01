@@ -50,7 +50,7 @@ export const generatePDFAsync = async (matchObj) => {
       content: [
         {
           image: `data:image/png;base64, ${logo}`,
-          //   width: 100,
+          width: 100,
         },
         {
           text: `${matchObj.competition.description} ${matchObj.description}`,
@@ -79,6 +79,7 @@ export const generatePDFAsync = async (matchObj) => {
         },
         qrcode: {
           alignment: "right",
+          width: 150,
         },
       },
     };
