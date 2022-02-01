@@ -166,7 +166,6 @@ matchRouter.get(
         .populate("competition")
         .populate("homeTeam")
         .populate("awayTeam");
-      // .populate("admin");
       if (match) {
         res.send(match);
       } else {

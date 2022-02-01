@@ -122,4 +122,25 @@ orderRouter.delete(
   }
 );
 
+orderRouter.delete(
+  "/allMatchOrders/:_id",
+  JWTAuthMiddleware,
+  clubAdminOnlyMiddleware,
+  async (req, res, next) => {
+    try {
+      const id = req.params._id;
+
+      const deletedOrders = await orderModel.deleteMany({ match: id });
+
+      if (deletedOrders) {
+        res.status(204).send();
+      } else {
+        next(createHttpError(404, `Order with id ${id} not found!`));
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 export default orderRouter;
