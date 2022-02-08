@@ -203,7 +203,7 @@ usersRouter.get(
         // secure: (process.env.NODE_ENV = "production" ? true : false),
         sameSite: "none",
       });
-      res.redirect(`http://localhost:3000`);
+      res.redirect(`https://clubstub-fe.vercel.app`);
     } catch (error) {
       next(error);
     }
